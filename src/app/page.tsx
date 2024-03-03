@@ -53,7 +53,7 @@ export default function Home() {
             <h1 className="text-4xl font-bold">Your Files</h1>
             <UploadFileButton />
           </div>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {files?.map((file) => (
               <FileCard key={file._id} file={file} />
             ))}
