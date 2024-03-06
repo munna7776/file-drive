@@ -41,6 +41,7 @@ export const SearchBar = ({
         name="query"
       />
       <Button type="submit" size="sm">
+        <span className="sr-only">Search</span>
         <SearchIcon />
       </Button>
     </form>

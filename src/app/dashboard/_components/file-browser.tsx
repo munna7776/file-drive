@@ -11,7 +11,13 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useState } from "react";
 
-export const FileBrowser = ({ title }: { title: string }) => {
+export const FileBrowser = ({
+  title,
+  isFavorite,
+}: {
+  title: string;
+  isFavorite?: boolean;
+}) => {
   const { organization, isLoaded: isOrgainzationLoaded } = useOrganization();
   const { isLoaded: isUserLoaded, user } = useUser();
   const [query, setQuery] = useState("");
@@ -21,9 +27,14 @@ export const FileBrowser = ({ title }: { title: string }) => {
     orgOrUserId = organization?.id ?? user?.id;
   }
 
+  const favorites = useQuery(
+    api.files.getAllFavorites,
+    orgOrUserId ? { orgId: orgOrUserId } : "skip",
+  );
+
   const files = useQuery(
     api.files.getFiles,
-    orgOrUserId ? { orgId: orgOrUserId, query } : "skip",
+    orgOrUserId ? { orgId: orgOrUserId, query, isFavorite } : "skip",
   );
 
   const isLoading = files === undefined;
@@ -47,7 +58,11 @@ export const FileBrowser = ({ title }: { title: string }) => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {files?.map((file) => (
-                <FileCard key={file._id} file={file} />
+                <FileCard
+                  key={file._id}
+                  file={file}
+                  favorites={favorites ?? []}
+                />
               ))}
             </div>
           )}
