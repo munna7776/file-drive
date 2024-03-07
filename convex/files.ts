@@ -61,6 +61,7 @@ export const getFiles = query({
     orgId: v.string(),
     query: v.optional(v.string()),
     isFavorite: v.optional(v.boolean()),
+    markAsDelete: v.optional(v.boolean()),
   },
   async handler(ctx, args) {
     const identity = await ctx.auth.getUserIdentity();
@@ -112,6 +113,12 @@ export const getFiles = query({
       );
     }
 
+    if (args.markAsDelete) {
+      files = files.filter((file) => file.shouldDelete);
+    } else {
+      files = files.filter((file) => !file.shouldDelete);
+    }
+
     return files;
   },
 });
@@ -135,7 +142,30 @@ export const deleteFile = mutation({
       throw new ConvexError("You have no access to delete a file.");
     }
 
-    return await ctx.db.delete(args.fileId);
+    await ctx.db.patch(args.fileId, { shouldDelete: true });
+  },
+});
+
+export const restoreFile = mutation({
+  args: {
+    fileId: v.id("files"),
+  },
+  async handler(ctx, args) {
+    const accessToFile = await hasAccessToFile(ctx, args.fileId);
+
+    if (!accessToFile) {
+      throw new ConvexError("No access to a file.");
+    }
+
+    const { file, user } = accessToFile;
+
+    const isAdmin =
+      user.orgIds.find((org) => org.orgId === file.orgId)?.role === "admin";
+    if (!isAdmin) {
+      throw new ConvexError("You have no access to delete a file.");
+    }
+
+    await ctx.db.patch(args.fileId, { shouldDelete: false });
   },
 });
 

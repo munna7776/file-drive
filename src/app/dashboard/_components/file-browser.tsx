@@ -14,9 +14,11 @@ import { useState } from "react";
 export const FileBrowser = ({
   title,
   isFavorite,
+  markAsDelete,
 }: {
   title: string;
   isFavorite?: boolean;
+  markAsDelete?: boolean;
 }) => {
   const { organization, isLoaded: isOrgainzationLoaded } = useOrganization();
   const { isLoaded: isUserLoaded, user } = useUser();
@@ -34,7 +36,9 @@ export const FileBrowser = ({
 
   const files = useQuery(
     api.files.getFiles,
-    orgOrUserId ? { orgId: orgOrUserId, query, isFavorite } : "skip",
+    orgOrUserId
+      ? { orgId: orgOrUserId, query, isFavorite, markAsDelete }
+      : "skip",
   );
 
   const isLoading = files === undefined;
@@ -54,7 +58,11 @@ export const FileBrowser = ({
             <UploadFileButton />
           </div>
           {files.length === 0 ? (
-            <FallbackPlaceholder query={query} isFavorite={isFavorite} />
+            <FallbackPlaceholder
+              query={query}
+              isFavorite={isFavorite}
+              isTrash={markAsDelete}
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {files?.map((file) => (

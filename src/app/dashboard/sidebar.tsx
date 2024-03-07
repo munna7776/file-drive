@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { FileIcon, Star } from "lucide-react";
+import { FileIcon, Star, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
@@ -16,6 +16,10 @@ export const Sidebar = () => {
       <NavLink href="/dashboard/favorites">
         <Star />
         Favorites
+      </NavLink>
+      <NavLink href="/dashboard/trash">
+        <TrashIcon />
+        Trash
       </NavLink>
     </aside>
   );

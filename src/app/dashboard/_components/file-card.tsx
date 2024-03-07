@@ -34,6 +34,7 @@ import {
   MoreVertical,
   StarIcon,
   TrashIcon,
+  UndoIcon,
 } from "lucide-react";
 import { ReactNode, useState } from "react";
 import { useMutation } from "convex/react";
@@ -62,6 +63,7 @@ const FileCardActions = ({
 }) => {
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const deleteFile = useMutation(api.files.deleteFile);
+  const restoreFile = useMutation(api.files.restoreFile);
   const toggleFavorite = useMutation(api.files.toggleFavorite);
   const { toast } = useToast();
   return (
@@ -74,8 +76,8 @@ const FileCardActions = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will delete your file from our
-              servers.
+              This action will mark the file for deletion process. Files will be
+              deleted periodically.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -85,8 +87,8 @@ const FileCardActions = ({
                 await deleteFile({ fileId: file._id });
                 toast({
                   variant: "default",
-                  title: "Deleted file successfully.",
-                  description: "Your file is deleted from the system.",
+                  title: "File is moved to trash.",
+                  description: "Your file will be deleted soon.",
                 });
               }}
             >
@@ -117,11 +119,28 @@ const FileCardActions = ({
           <Protect role="org:admin" fallback={<></>}>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => setIsConfirmDialogOpen(true)}
-              className="flex gap-1 items-center text-red-600"
+              onClick={async () => {
+                if (file.shouldDelete) {
+                  await restoreFile({ fileId: file._id });
+                } else {
+                  setIsConfirmDialogOpen(true);
+                }
+              }}
+              className={clsx("flex gap-1 items-center text-red-600", {
+                "text-green-600": file.shouldDelete,
+              })}
             >
-              <TrashIcon className="size-4" />
-              Delete
+              {file.shouldDelete ? (
+                <>
+                  <UndoIcon className="size-4" />
+                  Restore
+                </>
+              ) : (
+                <>
+                  <TrashIcon className="size-4" />
+                  Delete
+                </>
+              )}
             </DropdownMenuItem>
           </Protect>
         </DropdownMenuContent>
