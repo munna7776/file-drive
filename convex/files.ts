@@ -9,11 +9,15 @@ async function hasAccessToOrg(
   tokenIdentifier: string,
   orgId: string,
 ) {
-  console.log("token - ", tokenIdentifier);
   const user = await getUser(ctx, tokenIdentifier);
   const hasAccess =
-    user.orgIds.includes(orgId) || user.tokenIdentifier.includes(orgId);
-  return hasAccess;
+    user.orgIds.some((org) => org.orgId === orgId) ||
+    user.tokenIdentifier.includes(orgId);
+
+  if (!hasAccess) {
+    return null;
+  }
+  return { user };
 }
 
 export const generateUploadUrl = mutation(async (ctx) => {
@@ -123,6 +127,14 @@ export const deleteFile = mutation({
       throw new ConvexError("No access to a file.");
     }
 
+    const { file, user } = accessToFile;
+
+    const isAdmin =
+      user.orgIds.find((org) => org.orgId === file.orgId)?.role === "admin";
+    if (!isAdmin) {
+      throw new ConvexError("You have no access to delete a file.");
+    }
+
     return await ctx.db.delete(args.fileId);
   },
 });
@@ -169,17 +181,7 @@ export const toggleFavorite = mutation({
       throw new ConvexError("No access to file.");
     }
 
-    const { file, identity } = accessToFile;
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_tokenIdentifier", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier),
-      )
-      .first();
-    if (!user) {
-      throw new ConvexError("No user found!");
-    }
+    const { file, user } = accessToFile;
 
     const favorite = await ctx.db
       .query("favorites")
@@ -225,5 +227,5 @@ async function hasAccessToFile(
     return null;
   }
 
-  return { file, identity };
+  return { file, user: hasAccess.user };
 }

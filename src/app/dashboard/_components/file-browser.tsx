@@ -54,7 +54,7 @@ export const FileBrowser = ({
             <UploadFileButton />
           </div>
           {files.length === 0 ? (
-            <FallbackPlaceholder query={query} />
+            <FallbackPlaceholder query={query} isFavorite={isFavorite} />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {files?.map((file) => (

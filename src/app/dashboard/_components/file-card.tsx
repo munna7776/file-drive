@@ -41,6 +41,7 @@ import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
 import clsx from "clsx";
+import { Protect } from "@clerk/nextjs";
 
 const FILE_TYPE_ICON = {
   image: <ImageIcon />,
@@ -113,14 +114,16 @@ const FileCardActions = ({
             />
             {isFileFavorite ? "Remove from favorites" : "Add to favorites"}
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => setIsConfirmDialogOpen(true)}
-            className="flex gap-1 items-center text-red-600"
-          >
-            <TrashIcon className="size-4" />
-            Delete
-          </DropdownMenuItem>
+          <Protect role="org:admin" fallback={<></>}>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setIsConfirmDialogOpen(true)}
+              className="flex gap-1 items-center text-red-600"
+            >
+              <TrashIcon className="size-4" />
+              Delete
+            </DropdownMenuItem>
+          </Protect>
         </DropdownMenuContent>
       </DropdownMenu>
     </>
@@ -135,6 +138,8 @@ export function FileCard({
   favorites: Doc<"favorites">[];
 }) {
   const isFavorite = favorites.some((f) => f.fileId === file._id);
+  const fileURL = getFileURL(file.fileId);
+
   return (
     <Card>
       <CardHeader className="relative">
@@ -150,9 +155,10 @@ export function FileCard({
         {file.type === "image" && (
           <Image
             alt={file.name}
-            src={getFileURL(file.fileId)}
+            src={fileURL}
             width="200"
             height="100"
+            className="h-full"
           />
         )}
         {file.type === "csv" && <FileSpreadsheet className="size-20" />}
@@ -161,7 +167,7 @@ export function FileCard({
       <CardFooter className="justify-center">
         <Button
           onClick={() => {
-            window.open(getFileURL(file.fileId));
+            window.open(fileURL);
           }}
         >
           Download
