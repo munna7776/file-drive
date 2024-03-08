@@ -69,6 +69,7 @@ export const getFiles = query({
     query: v.optional(v.string()),
     isFavorite: v.optional(v.boolean()),
     markAsDelete: v.optional(v.boolean()),
+    type: v.optional(fileTypes),
   },
   async handler(ctx, args) {
     const identity = await ctx.auth.getUserIdentity();
@@ -124,6 +125,10 @@ export const getFiles = query({
       files = files.filter((file) => file.shouldDelete);
     } else {
       files = files.filter((file) => !file.shouldDelete);
+    }
+
+    if (args.type) {
+      files = files.filter((file) => file.type === args.type);
     }
 
     return files;

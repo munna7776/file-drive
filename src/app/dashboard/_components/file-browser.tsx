@@ -14,6 +14,17 @@ import { DataTable } from "./data-table";
 import { columns } from "./columns";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Doc } from "../../../../convex/_generated/dataModel";
+
+type FileType = Doc<"files">["type"] | "all";
 
 export const FileBrowser = ({
   title,
@@ -27,6 +38,7 @@ export const FileBrowser = ({
   const { organization, isLoaded: isOrgainzationLoaded } = useOrganization();
   const { isLoaded: isUserLoaded, user } = useUser();
   const [query, setQuery] = useState("");
+  const [type, setType] = useState<FileType>("all");
 
   let orgOrUserId: string | undefined = undefined;
   if (isUserLoaded && isOrgainzationLoaded) {
@@ -41,7 +53,13 @@ export const FileBrowser = ({
   const files = useQuery(
     api.files.getFiles,
     orgOrUserId
-      ? { orgId: orgOrUserId, query, isFavorite, markAsDelete }
+      ? {
+          orgId: orgOrUserId,
+          query,
+          isFavorite,
+          markAsDelete,
+          type: type === "all" ? undefined : type,
+        }
       : "skip",
   );
 
@@ -61,14 +79,33 @@ export const FileBrowser = ({
         <UploadFileButton />
       </div>
       <Tabs defaultValue="grid">
-        <TabsList className="mb-4">
-          <TabsTrigger value="grid" className="flex gap-2 items-center">
-            <GridIcon /> Grid
-          </TabsTrigger>
-          <TabsTrigger value="table">
-            <Table2Icon /> Table
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between items-center">
+          <TabsList className="mb-4">
+            <TabsTrigger value="grid" className="flex gap-2 items-center">
+              <GridIcon /> Grid
+            </TabsTrigger>
+            <TabsTrigger value="table">
+              <Table2Icon /> Table
+            </TabsTrigger>
+          </TabsList>
+          <div className="flex gap-2 items-center">
+            <Label htmlFor="type-filter">Filter by type</Label>
+            <Select
+              value={type}
+              onValueChange={(newValue: FileType) => setType(newValue)}
+            >
+              <SelectTrigger id="type-filter" className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="image">Image</SelectItem>
+                <SelectItem value="pdf">PDF</SelectItem>
+                <SelectItem value="csv">CSV</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         {isLoading && (
           <div className="flex flex-col gap-4 mt-12 items-center">
             <Loader2 className="size-20 animate-spin text-gray-600" />
