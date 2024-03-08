@@ -62,10 +62,8 @@ export function UploadFileButton() {
   const fileRef = form.register("file");
 
   let orgOrUserId: string | undefined = undefined;
-  let orgOrUserName: string | undefined | null = undefined;
   if (isUserLoaded && isOrgainzationLoaded) {
     orgOrUserId = organization?.id ?? user?.id;
-    orgOrUserName = organization?.name ?? user?.fullName;
   }
 
   const createFile = useMutation(api.files.createFile);

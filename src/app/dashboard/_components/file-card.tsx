@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Doc, Id } from "../../../../convex/_generated/dataModel";
 import {
   Card,
@@ -27,7 +26,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import {
+  Download,
   FileSpreadsheet,
   FileText,
   ImageIcon,
@@ -37,12 +39,13 @@ import {
   UndoIcon,
 } from "lucide-react";
 import { ReactNode, useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
 import clsx from "clsx";
 import { Protect } from "@clerk/nextjs";
+import { format, formatDistance, formatRelative, subDays } from "date-fns";
 
 const FILE_TYPE_ICON = {
   image: <ImageIcon />,
@@ -56,7 +59,7 @@ const getFileURL = (id: Id<"_storage">) => {
 
 const FileCardActions = ({
   file,
-  isFileFavorite = false,
+  isFileFavorite,
 }: {
   file: Doc<"files">;
   isFileFavorite: boolean;
@@ -103,6 +106,15 @@ const FileCardActions = ({
           <MoreVertical />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onClick={() => {
+              window.open(getFileURL(file.fileId));
+            }}
+            className="flex gap-1 items-center"
+          >
+            <Download className="size-4" />
+            Download
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={async () => {
               await toggleFavorite({ fileId: file._id });
@@ -156,13 +168,18 @@ export function FileCard({
   file: Doc<"files">;
   favorites: Doc<"favorites">[];
 }) {
+  const userProfile = useQuery(api.users.getUserProfile, {
+    userId: file.userId,
+  });
   const isFavorite = favorites.some((f) => f.fileId === file._id);
   const fileURL = getFileURL(file.fileId);
+
+  console.log(userProfile);
 
   return (
     <Card>
       <CardHeader className="relative">
-        <CardTitle className="flex gap-2 items-center">
+        <CardTitle className="flex gap-2 items-center text-base font-normal">
           {FILE_TYPE_ICON[file.type]}
           {file.name}
         </CardTitle>
@@ -183,14 +200,17 @@ export function FileCard({
         {file.type === "csv" && <FileSpreadsheet className="size-20" />}
         {file.type === "pdf" && <FileText className="size-20" />}
       </CardContent>
-      <CardFooter className="justify-center">
-        <Button
-          onClick={() => {
-            window.open(fileURL);
-          }}
-        >
-          Download
-        </Button>
+      <CardFooter className="flex-col gap-y-6 items-start">
+        <div className="flex gap-2 items-center text-sm text-gray-700">
+          <Avatar>
+            <AvatarImage src={userProfile?.image} alt={userProfile?.name} />
+            <AvatarFallback />
+          </Avatar>
+          {userProfile?.name}
+        </div>
+        <div className="text-sm text-gray-700 ml-auto">
+          Uploaded on {formatRelative(new Date(file._creationTime), new Date())}
+        </div>
       </CardFooter>
     </Card>
   );

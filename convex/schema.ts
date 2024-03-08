@@ -14,6 +14,7 @@ export default defineSchema({
     name: v.string(),
     orgId: v.string(),
     fileId: v.id("_storage"),
+    userId: v.id("users"),
     type: fileTypes,
     shouldDelete: v.optional(v.boolean()),
   })
@@ -21,6 +22,8 @@ export default defineSchema({
     .index("by_shouldDelete", ["shouldDelete"]),
   users: defineTable({
     tokenIdentifier: v.string(),
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
     orgIds: v.array(v.object({ orgId: v.string(), role: roles })),
   }).index("by_tokenIdentifier", ["tokenIdentifier"]),
   favorites: defineTable({

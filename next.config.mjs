@@ -5,6 +5,9 @@ const nextConfig = {
       {
         hostname: "vibrant-spoonbill-691.convex.cloud",
       },
+      {
+        hostname: "img.clerk.com",
+      },
     ],
   },
 };
