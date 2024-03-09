@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Doc } from "../../../../convex/_generated/dataModel";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { api } from "../../../../convex/_generated/api";
@@ -44,6 +44,7 @@ export const FileCardActions = ({
   const deleteFile = useMutation(api.files.deleteFile);
   const restoreFile = useMutation(api.files.restoreFile);
   const toggleFavorite = useMutation(api.files.toggleFavorite);
+  const me = useQuery(api.users.getMe);
   const { toast } = useToast();
   return (
     <>
@@ -104,12 +105,21 @@ export const FileCardActions = ({
             />
             {file.isFavorite ? "Remove from favorites" : "Add to favorites"}
           </DropdownMenuItem>
-          <Protect role="org:admin" fallback={<></>}>
+          <Protect
+            condition={(check) => {
+              return check({ role: "org:admin" }) || file.userId === me?._id;
+            }}
+            fallback={<></>}
+          >
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={async () => {
                 if (file.shouldDelete) {
                   await restoreFile({ fileId: file._id });
+                  toast({
+                    variant: "success",
+                    title: "Restored file.",
+                  });
                 } else {
                   setIsConfirmDialogOpen(true);
                 }
