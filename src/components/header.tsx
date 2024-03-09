@@ -11,7 +11,7 @@ import Image from "next/image";
 
 export function Header() {
   return (
-    <header className="border-b bg-gray-50 py-4">
+    <header className="border-b bg-gray-50 py-4 relative z-10">
       <div className="container flex items-center justify-between">
         <Link href="/" className="flex gap-2 items-center">
           <Image src="/logo.png" alt="file drive logo" height={40} width={40} />
